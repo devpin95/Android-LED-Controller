@@ -27,7 +27,7 @@
             android:width="70dp"
             android:background="#00FFFFFF"
             android:gravity="center"
-            android:text="@string/ON"
+            android:text="@string/OFF"
             android:textColor="#EDEDED"
             android:textSize="80sp"
             android:textStyle="bold" />
