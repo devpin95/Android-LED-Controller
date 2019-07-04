@@ -10,9 +10,12 @@ import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.azeesoft.lib.colorpicker.ColorPickerDialog;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -124,10 +127,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             // called after the user finishes moving the SeekBar
-            int prog = seekBar.getProgress();
-            current_brightness = prog;
+            current_brightness = seekBar.getProgress();
             brightness_val.setText(Integer.toString(current_brightness) + "%");
-            if (prog == 0) {
+            if (current_brightness == 0) {
                 toggle.setText(getResources().getString(R.string.OFF));
                 setAllColors(off_color);
             } else {
@@ -136,4 +138,21 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+
+    public void onColorPress(android.view.View view) {
+        ColorPickerDialog colorPickerDialog = ColorPickerDialog.createColorPickerDialog(this, ColorPickerDialog.DARK_THEME);
+
+        colorPickerDialog.setOnColorPickedListener(new ColorPickerDialog.OnColorPickedListener() {
+            @Override
+            public void onColorPicked(int color, String hexVal) {
+                current_color = color;
+                setAllColors(current_color);
+
+            }
+        });
+
+        colorPickerDialog.show();
+    }
+
 }
