@@ -185,7 +185,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             // updated continuously as the user slides the thumb
-            setColorScheme(modifyColorByBrightness(progress));
+            if (fromUser) {
+                setColorScheme(modifyColorByBrightness(progress));
+            }
         }
 
         @Override
