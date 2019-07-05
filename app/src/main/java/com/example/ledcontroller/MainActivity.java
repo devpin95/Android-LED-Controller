@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -17,7 +18,9 @@ import com.azeesoft.lib.colorpicker.ColorPickerDialog;
 
 public class MainActivity extends AppCompatActivity {
 
+    // true state = ON state, false state = OFF state
     private boolean state = true;
+
     private Button toggle;
     private SeekBar brightnessBar;
     private TextView brightness_val;
@@ -28,13 +31,14 @@ public class MainActivity extends AppCompatActivity {
 
     Vibrator vibe;
 
+
     @Override
     @TargetApi(16)
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         toggle = findViewById(R.id.toggle);
         brightnessBar = findViewById(R.id.brightnessBar);
@@ -50,38 +54,63 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     *  Sets activity attributes to reflect a color
+     * @param color a color as an integer value
+     */
+    public void setColor(int color) {
+        current_color = color;
+        //Log.i("info", "int sub cur_color: "+current_color);
 
-    public void setColor(int value) {
-        current_color = value;
-
-        // set color text
-        String hex = Integer.toHexString(current_color);
-        String rgb = hexToRGB(hex);
-        codes.setText("#" + hex + "\n" + rgb);
+        // change color text view to reflect current color
+        String hexStr = "#" + Integer.toHexString(current_color);
+        int[] rgb = getRGB(current_color);
+        String rgbStr = "RGB(" + rgb[0] + ", "
+                + rgb[1] + ", "
+                + rgb[2] + ")";
+        codes.setText(hexStr + "\n" + rgbStr);
 
         setColorScheme(current_color);
 
-        // Extract brightness from color
-        float[] hsv = new float[3];
-        Color.colorToHSV(current_color, hsv);
-        int brightness = (int)(hsv[2] * 100);
-        resetSeekbar(brightness);
+        // set seekbar to current color's brightness value
+        setSeekbar(getBrightnessFromColor(current_color));
     }
 
-
-    public void modifyColorByBrightness(int value) {
+    /**
+     *  Calculates a new color value based on a brightness value
+     * @param brightness brightness value as an integer between 0 and 100
+     * @return a color value as an integer
+     */
+    public int modifyColorByBrightness(int brightness) {
         // Convert to HSV
         float[] hsv = new float[3];
         Color.colorToHSV(current_color, hsv);
-        hsv[2] = value/(float)100;
+        hsv[2] = brightness/(float)100;
 
-        setColor(Color.HSVToColor(hsv));
+        return Color.HSVToColor(hsv);
     }
 
+    /**
+     *  Extracts brightness from integer color value
+     * @param color a color value as an integer
+     * @return the brightness value of the color as an integer between 0 and 100
+     */
+    private int getBrightnessFromColor(int color) {
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv);
+        return (int)(hsv[2] * 100);
+    }
+
+    /**
+     *  Sets state of activity to OFF state
+     *  OFF color scheme, text, and 0 seekbar position
+     *  state variable set to false
+     */
     private void setOffState() {
+        state = false;
         toggle.setText(R.string.OFF);
         setColorScheme(off_color);
-        resetSeekbar(0);
+        setSeekbar(0);
     }
 
 
@@ -89,23 +118,34 @@ public class MainActivity extends AppCompatActivity {
         return "FF6EC7";
     }
 
+    /**
+     *  Gets RGB values from an integer color value
+     * @param color a color as an integer value
+     * @return integer array with red, green, and blue values, respectively
+     */
+    private int[] getRGB(int color) {
+        int[] rgb = new int[3];
+        rgb[0] = Color.red(color);
+        rgb[1] = Color.green(color);
+        rgb[2] = Color.blue(color);
 
-    private String hexToRGB(String color) {
-        int r =  Integer.valueOf( color.substring( 1, 3 ), 16 );
-        int g =  Integer.valueOf( color.substring( 3, 5 ), 16 );
-        int b =  Integer.valueOf( color.substring( 5, 7 ), 16 );
-
-        return "RGB(" + r + ", "
-                + g + ", "
-                + b + ")";
+        return rgb;
     }
 
-
-    private void resetSeekbar(int brightness) {
+    /**
+     *  Changes seekbar to reflect a brightness value
+     * @param brightness a brightness value as an integer between 0 and 100
+     */
+    private void setSeekbar(int brightness) {
         brightnessBar.setProgress(brightness);
         brightness_val.setText(brightness + "%");
     }
 
+    /**
+     *  Sets Activity color scheme to reflect a color
+     *    changes color of all text and seekbar
+     * @param color a color value as and integer
+     */
     @TargetApi(16)
     protected void setColorScheme(int color) {
         toggle.setTextColor(color);
@@ -116,7 +156,13 @@ public class MainActivity extends AppCompatActivity {
         codes.setTextColor(color);
     }
 
-    protected void toggleLED(View v) {
+    /**
+     *  Toggles state of Activity ON/OFF (onClick)
+     *   ON sets main text to on and current_color color scheme
+     *   OFF sets main text to off and off_color color scheme
+     * @param view android.view.View required for onClick Event
+     */
+    protected void toggleLED(View view) {
         state = !state;
         if ( state ) {
             toggle.setText(R.string.ON);
@@ -129,23 +175,17 @@ public class MainActivity extends AppCompatActivity {
             vibe.vibrate(100);
         }
         catch (Exception e) {
-            // do nothing
+            Log.i("debug", e.toString());
         }
     }
+
 
     SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             // updated continuously as the user slides the thumb
-            if (progress == 0) {
-                setOffState();
-
-            } else {
-                toggle.setText(R.string.ON);
-                modifyColorByBrightness(progress);
-            }
-
+            setColorScheme(modifyColorByBrightness(progress));
         }
 
         @Override
@@ -160,32 +200,43 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-            /*// called after the user finishes moving the SeekBar
-            if (brightnessBar.getProgress() == 0) {
+            // called after the user finishes moving the SeekBar
+            if (seekBar.getProgress() == 0) {
                 setOffState();
 
             } else {
-                modifyColorByBrightness(seekBar.getProgress());
-            }*/
+                state = true;
+                toggle.setText(R.string.ON);
+                setColor(modifyColorByBrightness(seekBar.getProgress()));
+            }
         }
     };
 
-
+    /**
+     *  Initiates Color Picker Dialog (onClick)
+     * @param view android.view.View required for onClick event
+     */
     public void onColorPress(View view) {
         ColorPickerDialog colorPickerDialog = ColorPickerDialog.createColorPickerDialog(this, ColorPickerDialog.DARK_THEME);
 
         colorPickerDialog.setOnColorPickedListener(new ColorPickerDialog.OnColorPickedListener() {
+
             @Override
             public void onColorPicked(int color, String hexVal) {
+                Log.i("info", "int color: "+color);
+
+                // set new color
                 setColor(color);
+                Log.i("info", "int cur_color: "+current_color);
+                // if activity is in OFF state, reset to OFF state
                 if (!state) {
                     setOffState();
                 }
-
             }
         });
 
         colorPickerDialog.setInitialColor(current_color);
+        colorPickerDialog.hideOpacityBar();
         colorPickerDialog.show();
     }
 
