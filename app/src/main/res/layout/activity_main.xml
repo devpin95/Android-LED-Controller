@@ -47,20 +47,22 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:gravity="center"
-            android:text="TextView"
+            android:text=""
             android:textColor="@color/secondaryInfo"
             android:textSize="18sp" />
 
-        <TextView
+        <Button
             android:id="@+id/colorCodes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="175dp"
             android:gravity="center"
+            android:background="@color/colorBackground"
             android:text="COLORS"
             android:textColor="#F70000"
             android:textSize="25sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:onClick="onColorPress"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
