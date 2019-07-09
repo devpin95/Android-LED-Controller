@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView codes;
 
     private LColor currentColor;
-    private LColor offColor = new LColor(0xff55555);
+    private LColor offColor = new LColor(0xFF555555);
 
 //    private int currentColor;
 //    private int off_color = 0xFF555555;
@@ -170,7 +170,12 @@ public class MainActivity extends AppCompatActivity {
         state = !state;
         if ( state ) {
             toggle.setText(R.string.ON);
-            setColor(currentColor.modifyColorByBrightness(currentColor.getBrightness()));
+            if (currentColor.getBrightness() == 0) {
+                setColor(currentColor.modifyColorByBrightness(100));
+            }
+            else {
+                setColor(currentColor.modifyColorByBrightness(currentColor.getBrightness()));
+            }
         } else {
             setOffState();
         }
@@ -232,7 +237,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("info", "int color: "+color);
 
                 // set new color
-                setColor(color);
+                currentColor.setColor(color);
+                setColor(currentColor.getHex());
                 Log.i("info", "int cur_color: "+ currentColor);
                 // if activity is in OFF state, reset to OFF state
                 if (!state) {
