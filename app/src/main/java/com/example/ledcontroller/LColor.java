@@ -44,13 +44,12 @@ public class LColor {
         return rgb;
     }
 
-
     /**
      * Returns the hex string value for a color: #RRGGBB
      * @return String of hex value
      */
     public String getHexString() {
-        return "#" + Integer.toHexString(hexColor - 0xff000000);
+        return "#" + Integer.toHexString(hexColor);
     }
 
     /**
@@ -87,17 +86,6 @@ public class LColor {
     }
 
     /**
-     * Get the RGB values of a color
-     * rgb[0]: red
-     * rgb[1]: green
-     * rgb[2]: blue
-     * @return int[]
-     */
-    public int[] getRGBColor() {
-        return rgbColor;
-    }
-
-    /**
      * Returns the string RGB value: "RGB(RRR, GGG, BBB)"
      * @return String
      */
@@ -119,4 +107,15 @@ public class LColor {
         hsvColor[2] = brightness/(float)100;
         return Color.HSVToColor(hsvColor);
     }
+
+    /**
+     * Sets the color of the object to hex
+     * @param hex integer color value
+     */
+    public void setColor(int hex) {
+        hexColor = hex;
+        rgbColor = getRGB();
+        hsvColor = getHSV();
+    }
+
 }
