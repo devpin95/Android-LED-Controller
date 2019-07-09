@@ -56,13 +56,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="175dp"
-            android:gravity="center"
             android:background="@color/colorBackground"
+            android:gravity="center"
+            android:onClick="onColorPress"
+            android:shadowColor="#000000"
+            android:shadowDx="5"
+            android:shadowDy="5"
+            android:shadowRadius="20"
             android:text="COLORS"
             android:textColor="#F70000"
             android:textSize="25sp"
-            android:textStyle="bold"
-            android:onClick="onColorPress"/>
+            android:textStyle="bold" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
