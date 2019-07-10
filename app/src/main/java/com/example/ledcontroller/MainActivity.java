@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
     private LColor currentColor;
     private LColor offColor = new LColor(0xFF555555);
 
+    private DataManager db;
+
 //    private int currentColor;
 //    private int off_color = 0xFF555555;
 
@@ -40,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        db = new DataManager(this);
 
         vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
