@@ -11,4 +11,6 @@
     <string name="tab_text_2">Tab 2</string>
     <string name="colorListPresets">Presets</string>
     <string name="colorListFavorites">Favorites</string>
+
+    <string name="colorListEmpty">No Colors Found</string>
 </resources>
