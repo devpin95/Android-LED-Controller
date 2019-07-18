@@ -95,10 +95,14 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if ( resultCode == Activity.RESULT_OK ) {
             int hex = 0xFF00FF00;
-            data.getIntExtra("color", hex);
+            hex = data.getIntExtra("color", hex);
             Log.i("info", "From Main " + hex);
             setColor(hex);
             currentColor.setColor(hex);
+            setSeekbar(currentColor.getBrightness());
+            if ( state == false ) {
+                toggleLED(toggle);
+            }
         }
     }
 
@@ -202,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
 
         codes.setTextColor(color);
 
+        // need two arrays to set the color of the FAB
         int[][] states = new int[][] {
                 new int[] { android.R.attr.state_enabled}, // enabled
                 new int[] {-android.R.attr.state_enabled}, // disabled
@@ -215,8 +220,10 @@ public class MainActivity extends AppCompatActivity {
                 color,
                 color
         };
+        // get a new colorstatelist from the arrays
         ColorStateList mylist = new ColorStateList(states, colors);
 
+        // set the new color of the fab
         addFavoritesButton.setBackgroundTintList(mylist);
     }
 
