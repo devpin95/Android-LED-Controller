@@ -5,4 +5,5 @@
     <color name="colorAccent">#D81B60</color>
     <color name="colorBackground">#111111</color>
     <color name="secondaryInfo">#555555</color>
+    <color name="tabSelectedTextColor">#FFFFFF</color>
 </resources>

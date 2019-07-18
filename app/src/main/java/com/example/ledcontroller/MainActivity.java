@@ -1,9 +1,14 @@
 package com.example.ledcontroller;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -13,10 +18,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.azeesoft.lib.colorpicker.ColorPickerDialog;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MainActivity extends AppCompatActivity {
+
+    public static final int REQUEST_CODE = 1;
 
     // true state = ON state, false state = OFF state
     private boolean state = true;
@@ -25,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar brightnessBar;
     private TextView brightness_val;
     private TextView codes;
+    private FloatingActionButton addFavoritesButton;
 
     private LColor currentColor;
     private LColor offColor = new LColor(0xFF555555);
@@ -51,6 +61,23 @@ public class MainActivity extends AppCompatActivity {
         brightnessBar = findViewById(R.id.brightnessBar);
         brightness_val = findViewById(R.id.brightnessTextView);
         codes = findViewById(R.id.colorCodes);
+        addFavoritesButton = findViewById(R.id.addFavoriteButton);
+
+        // set up the fab for adding a color to favorites
+        addFavoritesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), "Added to favorites", Toast.LENGTH_SHORT).show();
+            }
+        });
+        addFavoritesButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Intent viewFavoritesIntent = new Intent(getApplicationContext(), FavoriteColorListActivity.class);
+                startActivityForResult(viewFavoritesIntent, REQUEST_CODE);
+                return true;
+            }
+        });
 
         // set the onChangeListener for the brightnessBar
         brightnessBar.setOnSeekBarChangeListener(seekBarChangeListener);
@@ -61,6 +88,18 @@ public class MainActivity extends AppCompatActivity {
         setColor(currentColor.getHex());
         //setColor(Integer.parseInt(getActiveColor(), 16) + 0xFF000000);
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if ( resultCode == Activity.RESULT_OK ) {
+            int hex = 0xFF00FF00;
+            data.getIntExtra("color", hex);
+            Log.i("info", "From Main " + hex);
+            setColor(hex);
+            currentColor.setColor(hex);
+        }
     }
 
     /**
@@ -162,6 +201,23 @@ public class MainActivity extends AppCompatActivity {
         brightnessBar.getThumb().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
         codes.setTextColor(color);
+
+        int[][] states = new int[][] {
+                new int[] { android.R.attr.state_enabled}, // enabled
+                new int[] {-android.R.attr.state_enabled}, // disabled
+                new int[] {-android.R.attr.state_checked}, // unchecked
+                new int[] { android.R.attr.state_pressed}  // pressed
+        };
+
+        int[] colors = new int[] {
+                color,
+                color,
+                color,
+                color
+        };
+        ColorStateList mylist = new ColorStateList(states, colors);
+
+        addFavoritesButton.setBackgroundTintList(mylist);
     }
 
     /**

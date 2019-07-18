@@ -55,7 +55,7 @@
             android:id="@+id/colorCodes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="175dp"
+            android:layout_marginTop="100dp"
             android:background="@color/colorBackground"
             android:gravity="center"
             android:onClick="onColorPress"
@@ -63,10 +63,28 @@
             android:shadowDx="5"
             android:shadowDy="5"
             android:shadowRadius="20"
-            android:text="COLORS"
+            android:text=""
             android:textColor="#F70000"
             android:textSize="25sp"
             android:textStyle="bold" />
+
+
     </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addFavoriteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="#FF0000"
+        android:clickable="true"
+        android:focusable="true"
+        app:backgroundTint="#FFFFFF"
+        app:fabSize="mini"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_add_favorite" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
