@@ -118,4 +118,11 @@ public class LColor {
         hsvColor = getHSV();
     }
 
+    public void setByRGB(String s) {
+        int[] rgb = new int[3];
+        rgb[0] = Integer.parseInt(s.substring(0,2));
+        rgb[1] = Integer.parseInt(s.substring(4,5));
+        rgb[2] = Integer.parseInt(s.substring(7,9));
+    }
+
 }
