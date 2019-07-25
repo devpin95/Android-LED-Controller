@@ -16,9 +16,9 @@ public class PageAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int pos) {
         switch (pos) {
             case 0:
-                return new PresetColorsFragment();
-            case 1:
                 return new FavoriteColorsFragment();
+            case 1:
+                return new PresetColorsFragment();
             default:
                 return null;
         }

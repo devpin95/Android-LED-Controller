@@ -22,16 +22,16 @@
             app:tabTextColor="@color/secondaryInfo">
 
             <com.google.android.material.tabs.TabItem
-                android:id="@+id/tabPresets"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/colorListPresets" />
-
-            <com.google.android.material.tabs.TabItem
                 android:id="@+id/tabFavorites"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/colorListFavorites" />
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/tabPresets"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/colorListPresets" />
 
         </com.google.android.material.tabs.TabLayout>
 
