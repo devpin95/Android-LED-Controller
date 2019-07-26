@@ -1,8 +1,10 @@
 package com.example.ledcontroller;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -17,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 
 import org.w3c.dom.Text;
 
@@ -36,7 +39,7 @@ public class DeleteFavoriteColorDialogFragment extends DialogFragment {
         //int color = getArguments().getInt("color");
 
         Bundle args = getArguments();
-        int color = args.getInt("color");
+        final int color = args.getInt("color");
 
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         final View v = inflater.inflate(R.layout.delete_color_dialog, null);
@@ -54,17 +57,27 @@ public class DeleteFavoriteColorDialogFragment extends DialogFragment {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         // delete the color
-                        Toast.makeText(getContext(), "Delete", Toast.LENGTH_SHORT).show();
+                        notifyToTarget(Activity.RESULT_OK, color);
                     }
                 })
                 .setNegativeButton(R.string.deleteCancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         // cancel
+                        notifyToTarget(Activity.RESULT_CANCELED, color);
                         dismiss();
                     }
                 });
 
         return builder.create();
+    }
+
+    private void notifyToTarget(int code, int color) {
+        Fragment targetFragment = getTargetFragment();
+        if ( targetFragment != null ) {
+            Intent intent = new Intent();
+            intent.putExtra("color", color);
+            targetFragment.onActivityResult(getTargetRequestCode(), code, intent);
+        }
     }
 }
