@@ -12,6 +12,7 @@ import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
@@ -25,6 +26,17 @@ import android.widget.Toast;
 
 import com.azeesoft.lib.colorpicker.ColorPickerDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,6 +52,12 @@ public class MainActivity extends AppCompatActivity {
     private LColor currentColor;
     private LColor offColor = new LColor(0xFF555555);
     private DataManager db;
+
+    private DataSender ds;
+
+//    private int currentColor;
+//    private int off_color = 0xFF555555;
+
     Vibrator vibe;
 
     @Override
@@ -75,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         setColor(currentColor.getHex());
         //setColor(Integer.parseInt(getActiveColor(), 16) + 0xFF000000);
 
+        new DataSender().execute();
     }
 
     @Override
@@ -200,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
      *   OFF sets main text to off and off_color color scheme
      * @param view android.view.View required for onClick Event
      */
-    protected void toggleLED(View view) {
+    public void toggleLED(View view) {
         state = !state;
         if ( state ) {
             toggle.setText(R.string.ON);
@@ -283,6 +302,55 @@ public class MainActivity extends AppCompatActivity {
         colorPickerDialog.setInitialColor(currentColor.getHex());
         colorPickerDialog.hideOpacityBar();
         colorPickerDialog.show();
+    }
+
+
+    public class DataSender extends AsyncTask<URL, Void, String> {
+
+        private final String API_URL = "https://192.168.0.159/getColor";
+
+        @Override
+        protected String doInBackground(URL... params) {
+
+            HttpURLConnection connection = null;
+
+            try {
+                URL url = new URL(API_URL);
+                connection = (HttpURLConnection) url.openConnection();
+                int response = connection.getResponseCode();
+                if (response == HttpURLConnection.HTTP_OK) {
+                    StringBuilder builder = new StringBuilder();
+                    try {
+                        Scanner input = new Scanner(
+                                new InputStreamReader(connection.getInputStream()));
+                        String line;
+                        while (input.hasNext()) {
+                            line = input.nextLine();
+                            builder.append(line);
+                        }
+                    } catch (IOException e) {
+                        Log.i("info", e.getMessage());
+                    }
+
+                    return builder.toString();
+                }
+            } catch (Exception e) {
+                Log.i("info", e.getMessage());
+            }
+
+            return null;
+
+        }
+
+        @Override
+        protected void onPostExecute(String colorString) {
+            showResponse(colorString);
+
+        }
+    }
+
+    public void showResponse(String response) {
+        Toast.makeText(this, "JSON: "+response, Toast.LENGTH_LONG).show();
     }
 
 }
