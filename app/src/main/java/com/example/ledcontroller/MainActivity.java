@@ -30,13 +30,26 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -88,12 +101,12 @@ public class MainActivity extends AppCompatActivity {
         brightnessBar.setOnSeekBarChangeListener(seekBarChangeListener);
 
         // TODO set color and brightnessBar to last saved?
-        // set starting color
-        currentColor = new LColor(Integer.parseInt(getActiveColor(), 16) + 0xFF000000);
-        setColor(currentColor.getHex());
-        //setColor(Integer.parseInt(getActiveColor(), 16) + 0xFF000000);
-
         new DataSender().execute();
+        // set starting color
+        if (currentColor == null) {
+            currentColor = new LColor(Integer.parseInt(getActiveColor(), 16) + 0xFF000000);
+            setColor(currentColor.getHex());
+        }
     }
 
     @Override
@@ -307,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
 
     public class DataSender extends AsyncTask<URL, Void, String> {
 
-        private final String API_URL = "https://192.168.0.159/getColor";
+        private final String API_URL = "http://173.214.162.225:8080/jersey/rest/colorService/color";
 
         @Override
         protected String doInBackground(URL... params) {
@@ -327,15 +340,22 @@ public class MainActivity extends AppCompatActivity {
                         while (input.hasNext()) {
                             line = input.nextLine();
                             builder.append(line);
+                            Log.i("info", "api: "+builder.toString());
                         }
                     } catch (IOException e) {
-                        Log.i("info", e.getMessage());
+                        Log.i("info", "TRY: "+e.getMessage());
                     }
+
+                    connection.disconnect();
+
+                    Log.i("info", "api: "+builder.toString());
 
                     return builder.toString();
                 }
+                connection.disconnect();
+
             } catch (Exception e) {
-                Log.i("info", e.getMessage());
+                Log.i("info", "TRY1: "+e.getMessage());
             }
 
             return null;
@@ -351,6 +371,35 @@ public class MainActivity extends AppCompatActivity {
 
     public void showResponse(String response) {
         Toast.makeText(this, "JSON: "+response, Toast.LENGTH_LONG).show();
+
+        //LColor color = null;
+
+        DocumentBuilderFactory factory =
+                DocumentBuilderFactory.newInstance();
+        try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(response)));
+            doc.getDocumentElement().normalize();
+            NodeList list = doc.getElementsByTagName("color");
+            for (int i = 0; i < list.getLength(); i++) {
+                Node node = list.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element element = (Element) node;
+                    currentColor.modifyColorByBrightness(Integer.parseInt(element.getElementsByTagName("brightness")
+                            .item(0).getTextContent()));
+                    currentColor.setColor(Integer.parseInt(element.getElementsByTagName("colorInt")
+                            .item(0).getTextContent()));
+                }
+                Toast.makeText(this, "color: "+currentColor.getHexString(), Toast.LENGTH_LONG).show();
+                Log.i("info", "colorInt: "+currentColor.getHexString());
+                //setColor(currentColor.getHex());
+
+            }
+
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }
