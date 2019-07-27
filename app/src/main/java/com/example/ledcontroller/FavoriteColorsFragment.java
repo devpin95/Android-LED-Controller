@@ -34,6 +34,10 @@ public class FavoriteColorsFragment extends Fragment {
     private ColorsAdapter colorsAdapter;
     private Vibrator vibe;
 
+    final ArrayList<LColor> colorList = new ArrayList<>();
+
+    private int REQ_CODE = 1;
+
     public FavoriteColorsFragment() {
         // Required empty public constructor
     }
@@ -48,7 +52,6 @@ public class FavoriteColorsFragment extends Fragment {
         db = new DataManager(getContext());
 
         Cursor cursor = db.getFavoriteColors();
-        final ArrayList<LColor> colorList = new ArrayList<>();
         while(cursor.moveToNext()) {
             String s = cursor.getString((cursor.getColumnIndex("color")));
             int i = Integer.parseInt(s);
@@ -87,6 +90,8 @@ public class FavoriteColorsFragment extends Fragment {
 
                     //Log.i("info", Integer.toString(color.getHex()));
                     DialogFragment newFragment = DeleteFavoriteColorDialogFragment.newInstance(color.getHex());
+                    newFragment.setTargetFragment(FavoriteColorsFragment.this, REQ_CODE);
+
                     newFragment.show(getFragmentManager(), "dialog");
 
                     //Toast.makeText(getContext(), "Delete " + color.getHexString() + "?", Toast.LENGTH_SHORT).show();
@@ -104,4 +109,32 @@ public class FavoriteColorsFragment extends Fragment {
         return itemView;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if ( resultCode == Activity.RESULT_OK ) {
+            int color = 0;
+            color = data.getIntExtra("color", color);
+            removeColor(color);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void removeColor(int color) {
+        int pos = -1;
+
+        for ( int i = 0; i < colorList.size(); ++i ) {
+            if ( colorList.get(i).getHex() == color ) {
+                pos = i;
+                break;
+            }
+        }
+
+        if ( pos == -1 ) {
+            Toast.makeText(getActivity(), "Error removing color", Toast.LENGTH_SHORT).show();
+        } else {
+            colorList.remove(pos);
+            colorsAdapter.notifyItemRemoved(pos);
+            colorsAdapter.notifyItemRangeChanged(pos, colorList.size());
+        }
+    }
 }

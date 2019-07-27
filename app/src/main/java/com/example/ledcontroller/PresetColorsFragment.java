@@ -89,7 +89,7 @@ public class PresetColorsFragment extends Fragment {
                         Log.i("debug", e.toString());
                     }
 
-                    Toast.makeText(getContext(), "Delete " + color.getHexString() + "?", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Cannot delete preset colors", Toast.LENGTH_SHORT).show();
                 }
             }));
 

@@ -1,5 +1,6 @@
 package com.example.ledcontroller;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,6 +16,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -41,16 +44,13 @@ public class MainActivity extends AppCompatActivity {
 
     // true state = ON state, false state = OFF state
     private boolean state = true;
-
     private Button toggle;
     private SeekBar brightnessBar;
     private TextView brightness_val;
     private TextView codes;
     private FloatingActionButton addFavoritesButton;
-
     private LColor currentColor;
     private LColor offColor = new LColor(0xFF555555);
-
     private DataManager db;
 
     private DataSender ds;
@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
 //    private int off_color = 0xFF555555;
 
     Vibrator vibe;
-
 
     @Override
     @TargetApi(16)
@@ -84,14 +83,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Added to favorites", Toast.LENGTH_SHORT).show();
             }
         });
-        addFavoritesButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                Intent viewFavoritesIntent = new Intent(getApplicationContext(), FavoriteColorListActivity.class);
-                startActivityForResult(viewFavoritesIntent, REQUEST_CODE);
-                return true;
-            }
-        });
 
         // set the onChangeListener for the brightnessBar
         brightnessBar.setOnSeekBarChangeListener(seekBarChangeListener);
@@ -112,12 +103,33 @@ public class MainActivity extends AppCompatActivity {
             int hex = 0xFF00FF00;
             hex = data.getIntExtra("color", hex);
             Log.i("info", "From Main " + hex);
-            setColor(hex);
             currentColor.setColor(hex);
-            setSeekbar(currentColor.getBrightness());
+            setColor(currentColor.getHex());
+            //setSeekbar(currentColor.getBrightness());
+
             if ( !state ) {
                 toggleLED(toggle);
             }
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+        //return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch ( item.getItemId() ) {
+            case R.id.favoritesMenuItem:
+                Intent viewFavoritesIntent = new Intent(getApplicationContext(), FavoriteColorListActivity.class);
+                startActivityForResult(viewFavoritesIntent, REQUEST_CODE);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+
         }
     }
 
@@ -142,31 +154,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     *  Calculates a new color value based on a brightness value
-     * @param brightness brightness value as an integer between 0 and 100
-     * @return a color value as an integer
-     */
-//    public int modifyColorByBrightness(int brightness) {
-//        // Convert to HSV
-//        float[] hsv = new float[3];
-//        Color.colorToHSV(currentColor, hsv);
-//        hsv[2] = brightness/(float)100;
-//
-//        return Color.HSVToColor(hsv);
-//    }
-
-    /**
-     *  Extracts brightness from integer color value
-     * @param color a color value as an integer
-     * @return the brightness value of the color as an integer between 0 and 100
-     */
-//    private int getBrightnessFromColor(int color) {
-//        float[] hsv = new float[3];
-//        Color.colorToHSV(color, hsv);
-//        return (int)(hsv[2] * 100);
-//    }
-
-    /**
      *  Sets state of activity to OFF state
      *  OFF color scheme, text, and 0 seekbar position
      *  state variable set to false
@@ -178,25 +165,9 @@ public class MainActivity extends AppCompatActivity {
         setSeekbar(0);
     }
 
-
     protected String getActiveColor() {
         return "FF6EC7";
     }
-
-    /**
-     *  Gets RGB values from an integer color value
-     * @param color a color as an integer value
-     * @return integer array with red, green, and blue values, respectively
-     */
-//    private int[] getRGB(int color) {
-//        int[] rgb = new int[3];
-//        rgb[0] = Color.red(color);
-//        rgb[1] = Color.green(color);
-//        rgb[2] = Color.blue(color);
-//
-//        return rgb;
-//    }
-
 
     /**
      *  Changes seekbar to reflect a brightness value
@@ -269,7 +240,6 @@ public class MainActivity extends AppCompatActivity {
             Log.i("debug", e.toString());
         }
     }
-
 
     SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
 
