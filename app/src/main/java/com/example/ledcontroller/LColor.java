@@ -7,69 +7,65 @@ import java.text.DecimalFormat;
 public class LColor {
     private int[] rgbColor;
     private int hexColor;
+    private int alphalessHex;
     private float[] hsvColor;
+    private int brightness;
 
     private String rgbString, hexString, hsvString;
 
-    public LColor(int[] rgb, int hex, float[] hsv) {
-        rgbColor = rgb;
-        hexColor = hex;
-        hsvColor = hsv;
-
-        rgbString = getHexString();
-        hexString = getHexString();
-        hsvString = getHSVString();
-    }
+    public LColor() {}
 
     public LColor(int hex) {
+        // Set Hex
         hexColor = hex;
-        rgbColor = getRGB();
-        hsvColor = getHSV();
+        hexString = "#" + Integer.toHexString(hex);
+        alphalessHex = (int) (Long.parseLong(hexString.substring(1), 16) - 0xFF000000);
 
-        rgbString = getRGBString();
-        hexString = getHexString();
-        hsvString = getHSVString();
+        // Set RGB
+        rgbColor = HexToRGB(hex);
+        rgbString = "RGB(" + rgbColor[0] + ", "
+                + rgbColor[1] + ", "
+                + rgbColor[2] + ")";
+
+        // Set HSV
+        hsvColor = HexToHSV(hex);
+        hsvString = HSVToString(hsvColor);
+
+        brightness = 100;
     }
+
+    public LColor(int hex, int brightness) {
+        // Set Hex
+        hexColor = hex;
+        hexString = "#" + Integer.toHexString(hex);
+        alphalessHex = (int) (Long.parseLong(hexString.substring(1), 16) - 0xFF000000);
+
+        // Set RGB
+        rgbColor = HexToRGB(hex);
+        rgbString = "RGB(" + rgbColor[0] + ", "
+                + rgbColor[1] + ", "
+                + rgbColor[2] + ")";
+
+        // Set HSV
+        hsvColor = HexToHSV(hex);
+        hsvString = HSVToString(hsvColor);
+
+        this.brightness = brightness;
+    }
+
+
 
     /**
      * Gets RGB values from hexColor
      * @return integer array with red, green, and blue values, respectively
      */
-    public int[] getRGB() {
+    private int[] HexToRGB(int hex) {
         int[] rgb = new int[3];
-        rgb[0] = Color.red(hexColor);
-        rgb[1] = Color.green(hexColor);
-        rgb[2] = Color.blue(hexColor);
+        rgb[0] = Color.red(hex);
+        rgb[1] = Color.green(hex);
+        rgb[2] = Color.blue(hex);
 
         return rgb;
-    }
-
-    /**
-     * Returns the hex string value for a color: #RRGGBB
-     * @return String of hex value
-     */
-    public String getHexString() {
-        return "#" + Integer.toHexString(hexColor);
-    }
-
-    /**
-     * Returns the int hex color
-     * @return int
-     */
-    public int getHex() {
-        return hexColor;
-    }
-
-
-    /**
-     * Returns the string HSV value: "HSV(##0.00, ##0.00, ##0.00)"
-     * @return String
-     */
-    public String getHSVString() {
-        DecimalFormat decimalFormat = new DecimalFormat("##0.00");
-        return "HSV(" + decimalFormat.format(hsvColor[0]) + ", " +
-                decimalFormat.format(hsvColor[1]) + ", " +
-                decimalFormat.format(hsvColor[2]) + ")";
     }
 
     /**
@@ -79,43 +75,61 @@ public class LColor {
      * brightness: hsv[2]
      * @return float[3]
      */
-    public float[] getHSV() {
+    private float[] HexToHSV(int hex) {
         float[] hsv = new float[3];
-        Color.colorToHSV(hexColor, hsv);
+        Color.colorToHSV(hex, hsv);
         return hsv;
     }
 
     /**
-     * Returns the string RGB value: "RGB(RRR, GGG, BBB)"
+     * Returns the string HSV value: "HSV(##0.00, ##0.00, ##0.00)"
      * @return String
      */
-    public String getRGBString() {
-        return "RGB(" + rgbColor[0] + ", "
-                + rgbColor[1] + ", "
-                + rgbColor[2] + ")";
+    public String HSVToString(float[] hsv) {
+        DecimalFormat decimalFormat = new DecimalFormat("##0.00");
+        return "HSV(" + decimalFormat.format(hsv[0]) + ", " +
+                decimalFormat.format(hsv[1]) + ", " +
+                decimalFormat.format(hsv[2]) + ")";
     }
 
-    /**
-     * returns the current brightness of color
-     * @return int
-     */
+    public int getHex() {
+        return hexColor;
+    }
+
+    public String getHexString() { return hexString; }
+
+    public int getAlphalessHex() { return alphalessHex; }
+
+    public int[] getRgb() {
+        return rgbColor;
+    }
+
+    public String getRgbString() { return rgbString; }
+
+    public float[] getHsv() {
+        return hsvColor;
+    }
+
+    public String getHsvString() { return hsvString; }
+
+
     public int getBrightness() {
         return (int)(hsvColor[2] * 100);
     }
 
-    public int modifyColorByBrightness(int brightness) {
-        hsvColor[2] = brightness/(float)100;
-        return Color.HSVToColor(hsvColor);
+    public void setBrightness(int brightness) {
+        this.brightness = brightness;
     }
 
     /**
-     * Sets the color of the object to hex
-     * @param hex integer color value
+     * Returns color integer based on object's brightness value
+     * (Brightness and Color(hex)integer are kept separate to retain
+     *      original color value, as brightness alters the color entirely)
+     * @return color value as integer
      */
-    public void setColor(int hex) {
-        hexColor = hex;
-        rgbColor = getRGB();
-        hsvColor = getHSV();
+    public int getColor() {
+        hsvColor[2] = brightness/(float)100;
+        return Color.HSVToColor(hsvColor);
     }
 
     public void setByRGB(String s) {

@@ -9,8 +9,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.database.Cursor;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -27,9 +25,6 @@ import android.widget.Toast;
 import com.azeesoft.lib.colorpicker.ColorPickerDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -37,14 +32,11 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -63,13 +55,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView codes;
     private FloatingActionButton addFavoritesButton;
     private LColor currentColor;
-    private LColor offColor = new LColor(0xFF555555);
+    private LColor offColor = new LColor((int)Long.parseLong("FF555555", 16));
+    private LColor defaultColor = new LColor(255);
+
     private DataManager db;
-
-    private DataSender ds;
-
-//    private int currentColor;
-//    private int off_color = 0xFF555555;
 
     Vibrator vibe;
 
@@ -100,13 +89,20 @@ public class MainActivity extends AppCompatActivity {
         // set the onChangeListener for the brightnessBar
         brightnessBar.setOnSeekBarChangeListener(seekBarChangeListener);
 
-        // TODO set color and brightnessBar to last saved?
-        new DataSender().execute();
-        // set starting color
-        if (currentColor == null) {
-            currentColor = new LColor(Integer.parseInt(getActiveColor(), 16) + 0xFF000000);
-            setColor(currentColor.getHex());
-        }
+        // set default starting color
+        currentColor = defaultColor;
+
+        // Retrieve and set color and state from database
+        //new ColorGrabber().execute();
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Retrieve and set color and state from database
+        new ColorGrabber().execute();
     }
 
     @Override
@@ -116,13 +112,16 @@ public class MainActivity extends AppCompatActivity {
             int hex = 0xFF00FF00;
             hex = data.getIntExtra("color", hex);
             Log.i("info", "From Main " + hex);
-            currentColor.setColor(hex);
-            setColor(currentColor.getHex());
-            //setSeekbar(currentColor.getBrightness());
+            currentColor = new LColor(hex);
+
+            updateActivityColor();
 
             if ( !state ) {
                 toggleLED(toggle);
             }
+
+            // send color to database
+            new ColorSender(currentColor.getAlphalessHex(), currentColor.getBrightness(), state).execute();
         }
     }
 
@@ -147,20 +146,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     *  Sets activity attributes to reflect a color
-     * @param color a color as an integer value
+     *  Updates activity attributes to reflect the current color
      */
-    public void setColor(int color) {
-//        currentColor = new LColor(color);
-        //Log.i("info", "int sub cur_color: "+currentColor);
+    public void updateActivityColor() {
+        //new ColorSender(currentColor.getHex(), currentColor.getBrightness(), state).execute();
 
         // change color text view to reflect current color
-
         codes.setText(currentColor.getHexString() + '\n' +
-                currentColor.getRGBString() + '\n' +
-                currentColor.getHSVString());
+                currentColor.getRgbString() + '\n' +
+                currentColor.getHsvString());
 
-        setColorScheme(color);
+        setColorScheme(currentColor.getColor());
 
         // set seekbar to current color's brightness value
         setSeekbar(currentColor.getBrightness());
@@ -176,10 +172,6 @@ public class MainActivity extends AppCompatActivity {
         toggle.setText(R.string.OFF);
         setColorScheme(offColor.getHex());
         setSeekbar(0);
-    }
-
-    protected String getActiveColor() {
-        return "FF6EC7";
     }
 
     /**
@@ -237,14 +229,19 @@ public class MainActivity extends AppCompatActivity {
         if ( state ) {
             toggle.setText(R.string.ON);
             if (currentColor.getBrightness() == 0) {
-                setColor(currentColor.modifyColorByBrightness(100));
+                currentColor.setBrightness(100);
+                updateActivityColor();
+                new ColorSender(currentColor.getBrightness()).execute();
             }
             else {
-                setColor(currentColor.modifyColorByBrightness(currentColor.getBrightness()));
+                updateActivityColor();
             }
         } else {
             setOffState();
         }
+
+        // send state to database
+        new ColorSender(state).execute();
 
         try {
             vibe.vibrate(10);
@@ -260,7 +257,8 @@ public class MainActivity extends AppCompatActivity {
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             // updated continuously as the user slides the thumb
             if (fromUser) {
-                setColorScheme(currentColor.modifyColorByBrightness(progress));
+                currentColor.setBrightness(progress);
+                setColorScheme(currentColor.getColor());
             }
         }
 
@@ -283,8 +281,13 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 state = true;
                 toggle.setText(R.string.ON);
-                setColor(currentColor.modifyColorByBrightness(seekBar.getProgress()));
+                currentColor.setBrightness(seekBar.getProgress());
+                updateActivityColor();
+
             }
+
+            // save result in database
+            new ColorSender(currentColor.getBrightness()).execute();
         }
     };
 
@@ -302,13 +305,17 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("info", "int color: "+color);
 
                 // set new color
-                currentColor.setColor(color);
-                setColor(currentColor.getHex());
+                currentColor = new LColor(color);
+                updateActivityColor();
                 Log.i("info", "int cur_color: "+ currentColor);
+
                 // if activity is in OFF state, reset to OFF state
                 if (!state) {
                     setOffState();
                 }
+
+                // send color to database
+                new ColorSender(currentColor.getAlphalessHex(), currentColor.getBrightness(), state).execute();
             }
         });
 
@@ -318,7 +325,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public class DataSender extends AsyncTask<URL, Void, String> {
+    //***************************** Network tasks *******************************
+
+    public class ColorGrabber extends AsyncTask<URL, Void, String> {
 
         private final String API_URL = "http://173.214.162.225:8080/jersey/rest/colorService/color";
 
@@ -340,22 +349,21 @@ public class MainActivity extends AppCompatActivity {
                         while (input.hasNext()) {
                             line = input.nextLine();
                             builder.append(line);
-                            Log.i("info", "api: "+builder.toString());
+                            Log.i("info", "api: " + builder.toString());
                         }
                     } catch (IOException e) {
-                        Log.i("info", "TRY: "+e.getMessage());
+                        Log.i("info", "TRY: " + e.getMessage());
                     }
-
                     connection.disconnect();
 
-                    Log.i("info", "api: "+builder.toString());
+                    Log.i("info", "api: " + builder.toString());
 
                     return builder.toString();
                 }
                 connection.disconnect();
 
             } catch (Exception e) {
-                Log.i("info", "TRY1: "+e.getMessage());
+                Log.i("info", "TRY1: " + e.getMessage());
             }
 
             return null;
@@ -364,40 +372,42 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String colorString) {
-            showResponse(colorString);
 
-        }
-    }
+            try {
+                // XML parsing
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                Document doc = builder.parse(new InputSource(new StringReader(colorString)));
+                doc.getDocumentElement().normalize();
+                NodeList list = doc.getElementsByTagName("color");
+                for (int i = 0; i < list.getLength(); i++) {
+                    Node node = list.item(i);
+                    if (node.getNodeType() == Node.ELEMENT_NODE) {
+                        Element element = (Element) node;
 
-    public void showResponse(String response) {
-        Toast.makeText(this, "JSON: "+response, Toast.LENGTH_LONG).show();
+                        // set color to retrieved color object
+                        currentColor = new LColor(Integer.parseInt(element.getElementsByTagName("colorInt")
+                                .item(0).getTextContent()),
+                                Integer.parseInt(element.getElementsByTagName("brightness")
+                                        .item(0).getTextContent()));
 
-        //LColor color = null;
+                        // set state to retrieved state
+                        state = Boolean.parseBoolean(element.getElementsByTagName("status").item(0).getTextContent());
+                    }
 
-        DocumentBuilderFactory factory =
-                DocumentBuilderFactory.newInstance();
-        try {
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new StringReader(response)));
-            doc.getDocumentElement().normalize();
-            NodeList list = doc.getElementsByTagName("color");
-            for (int i = 0; i < list.getLength(); i++) {
-                Node node = list.item(i);
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    Element element = (Element) node;
-                    currentColor.modifyColorByBrightness(Integer.parseInt(element.getElementsByTagName("brightness")
-                            .item(0).getTextContent()));
-                    currentColor.setColor(Integer.parseInt(element.getElementsByTagName("colorInt")
-                            .item(0).getTextContent()));
+                    Log.i("info", "received color: " + currentColor.getHexString());
                 }
-                Toast.makeText(this, "color: "+currentColor.getHexString(), Toast.LENGTH_LONG).show();
-                Log.i("info", "colorInt: "+currentColor.getHexString());
-                //setColor(currentColor.getHex());
 
+                // apply color and state to activity
+                updateActivityColor();
+                if (!state) {
+                    setOffState();
+                }
+
+            } catch (ParserConfigurationException | IOException | SAXException e) {
+                e.printStackTrace();
             }
 
-        } catch (ParserConfigurationException | IOException | SAXException e) {
-            e.printStackTrace();
         }
 
     }
