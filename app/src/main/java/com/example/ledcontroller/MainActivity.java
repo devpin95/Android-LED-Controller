@@ -145,6 +145,10 @@ public class MainActivity extends AppCompatActivity {
                 Intent viewFavoritesIntent = new Intent(getApplicationContext(), FavoriteColorListActivity.class);
                 startActivityForResult(viewFavoritesIntent, REQUEST_CODE);
                 return true;
+            case R.id.networkTestMenuItem:
+                Intent viewNetworkTestIntent = new Intent(getApplicationContext(), NetworkTestActivity.class);
+                startActivity(viewNetworkTestIntent);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
 

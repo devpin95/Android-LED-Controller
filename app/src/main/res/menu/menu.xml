@@ -5,4 +5,7 @@
         android:id="@+id/favoritesMenuItem"
         android:icon="@android:drawable/btn_star_big_on"
         android:title="@string/colorListFavorites" />
+    <item
+        android:id="@+id/networkTestMenuItem"
+        android:title="@string/networkTest" />
 </menu>
