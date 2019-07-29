@@ -6,6 +6,7 @@
 
     <!-- The class name to the ScrollingChildBehavior required for AppBarLayout -->
     <string name="appbar_scrolling_view_behavior" translatable="false">android.support.design.widget.AppBarLayout$ScrollingViewBehavior</string>
+
     <string name="title_activity_favorite_color_list">Color List</string>
     <string name="tab_text_1">Tab 1</string>
     <string name="tab_text_2">Tab 2</string>
@@ -16,4 +17,10 @@
     <string name="deleteContinue">Yes</string>
     <string name="deleteCancel">No</string>
     <string name="emptyColorList">No Colors Found</string>
+
+    <string name="networkTest">Network Test</string>
+    <string name="wifi">Wifi network:</string>
+    <string name="api">API response:</string>
+    <string name="err">API error:</string>
+    <string name="closeButton">Close</string>
 </resources>
