@@ -1,9 +1,11 @@
 package com.example.ledcontroller;
 
+import android.annotation.TargetApi;
 import android.graphics.Color;
 
 import java.text.DecimalFormat;
 
+@TargetApi(26)
 public class LColor {
     private int[] rgbColor;
     private int hexColor;
@@ -11,13 +13,16 @@ public class LColor {
     private float[] hsvColor;
     private int brightness;
 
+    private Color color;
+
     private String rgbString, hexString, hsvString;
 
     public LColor() {}
 
     public LColor(int hex) {
+
         // Set Hex
-        hexColor = hex;
+        hexColor = Color.valueOf(hex).toArgb();
         hexString = "#" + Integer.toHexString(hex);
         alphalessHex = (int) (Long.parseLong(hexString.substring(1), 16) - 0xFF000000);
 
@@ -36,7 +41,7 @@ public class LColor {
 
     public LColor(int hex, int brightness) {
         // Set Hex
-        hexColor = hex;
+        hexColor = Color.valueOf(hex).toArgb();
         hexString = "#" + Integer.toHexString(hex);
         alphalessHex = (int) (Long.parseLong(hexString.substring(1), 16) - 0xFF000000);
 

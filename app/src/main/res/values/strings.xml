@@ -12,9 +12,8 @@
     <string name="colorListPresets">Presets</string>
     <string name="colorListFavorites">Favorites</string>
 
-    <string name="colorListEmpty">No Colors Found</string>
-
     <string name="deleteColorAlert">Remove Color?</string>
     <string name="deleteContinue">Yes</string>
     <string name="deleteCancel">No</string>
+    <string name="emptyColorList">No Colors Found</string>
 </resources>

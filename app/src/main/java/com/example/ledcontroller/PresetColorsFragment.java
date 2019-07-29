@@ -10,9 +10,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Vibrator;
@@ -48,10 +46,10 @@ public class PresetColorsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         vibe = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-        View itemView = inflater.inflate(R.layout.fragment_preset_colors, container, false);
+        View itemView = inflater.inflate(R.layout.fragment_colors_list, container, false);
         db = new DataManager(getContext());
 
-        Cursor cursor = db.getFavoriteColors();
+        Cursor cursor = db.getPresetColors();
         final ArrayList<LColor> colorList = new ArrayList<>();
         while(cursor.moveToNext()) {
             String s = cursor.getString((cursor.getColumnIndex("color")));
@@ -61,10 +59,11 @@ public class PresetColorsFragment extends Fragment {
 
         if ( colorList.size() == 0 ) {
             TextView def = itemView.findViewById(R.id.presetColorsDefault);
-            def.setText(getString(R.string.colorListEmpty));
+            def.setVisibility(View.VISIBLE);
         } else {
             TextView def = itemView.findViewById(R.id.presetColorsDefault);
-            def.setText("");
+            def.setVisibility(View.GONE);
+            //def.setText("");
 
             recyclerView = itemView.findViewById(R.id.presetColorRecycler);
 

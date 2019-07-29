@@ -34,6 +34,8 @@ public class FavoriteColorsFragment extends Fragment {
     private ColorsAdapter colorsAdapter;
     private Vibrator vibe;
 
+    private TextView emptyAlert;
+
     final ArrayList<LColor> colorList = new ArrayList<>();
 
     private int REQ_CODE = 1;
@@ -48,22 +50,24 @@ public class FavoriteColorsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         vibe = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-        View itemView = inflater.inflate(R.layout.fragment_preset_colors, container, false);
+        View itemView = inflater.inflate(R.layout.fragment_colors_list, container, false);
+
+        emptyAlert = itemView.findViewById(R.id.presetColorsDefault);
+
         db = new DataManager(getContext());
 
         Cursor cursor = db.getFavoriteColors();
         while(cursor.moveToNext()) {
             String s = cursor.getString((cursor.getColumnIndex("color")));
             int i = Integer.parseInt(s);
+            Log.i("info", "ADDING " + i + " to favorite colors list");
             colorList.add(new LColor(i));
         }
 
         if ( colorList.size() == 0 ) {
-            TextView def = itemView.findViewById(R.id.presetColorsDefault);
-            def.setText(getString(R.string.colorListEmpty));
+            emptyAlert.setVisibility(View.VISIBLE);
         } else {
-            TextView def = itemView.findViewById(R.id.presetColorsDefault);
-            def.setText("");
+            emptyAlert.setVisibility(View.GONE);
 
             recyclerView = itemView.findViewById(R.id.presetColorRecycler);
 
@@ -114,7 +118,15 @@ public class FavoriteColorsFragment extends Fragment {
         if ( resultCode == Activity.RESULT_OK ) {
             int color = 0;
             color = data.getIntExtra("color", color);
-            removeColor(color);
+
+            Boolean removed = db.deleteColor(color);
+
+            if ( removed ){
+                removeColor(color);
+            } else {
+                Toast.makeText(getActivity(), "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -132,9 +144,14 @@ public class FavoriteColorsFragment extends Fragment {
         if ( pos == -1 ) {
             Toast.makeText(getActivity(), "Error removing color", Toast.LENGTH_SHORT).show();
         } else {
+            Toast.makeText(getActivity(), "Color removed", Toast.LENGTH_SHORT).show();
             colorList.remove(pos);
             colorsAdapter.notifyItemRemoved(pos);
             colorsAdapter.notifyItemRangeChanged(pos, colorList.size());
+
+            if ( colorList.size() == 0 ) {
+                emptyAlert.setVisibility(View.VISIBLE);
+            }
         }
     }
 }

@@ -82,7 +82,13 @@ public class MainActivity extends AppCompatActivity {
         addFavoritesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getApplicationContext(), "Added to favorites", Toast.LENGTH_SHORT).show();
+                Boolean added = db.insertColor( currentColor.getHex() );
+
+                if ( added ) {
+                    Toast.makeText(getApplicationContext(), "Added to favorites", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -386,8 +392,10 @@ public class MainActivity extends AppCompatActivity {
                         Element element = (Element) node;
 
                         // set color to retrieved color object
-                        currentColor = new LColor(Integer.parseInt(element.getElementsByTagName("colorInt")
-                                .item(0).getTextContent()),
+                        long colorLong = Long.parseLong(element.getElementsByTagName("colorInt")
+                                .item(0).getTextContent())
+                                +0xFF000000;
+                        currentColor = new LColor((int)colorLong,
                                 Integer.parseInt(element.getElementsByTagName("brightness")
                                         .item(0).getTextContent()));
 

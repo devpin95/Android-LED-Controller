@@ -4,11 +4,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class DataManager {
 
+    private int version = 4;
+
     private SQLiteDatabase db;
     private String favoriteColorsTable = "favoriteColors";
+    private String presetColorsTable = "presetColors";
 
     public DataManager(Context context) {
         SQLHelper helper = new SQLHelper(context);
@@ -18,17 +22,52 @@ public class DataManager {
     public Cursor getFavoriteColors() {
         String query =
                 "SELECT * " +
-                "FROM favoriteColors";
+                "FROM " + favoriteColorsTable;
         return db.rawQuery(query, null);
+    }
+
+    public Cursor getPresetColors() {
+        String query =
+                "SELECT * " +
+                        "FROM " + presetColorsTable;
+        return db.rawQuery(query, null);
+    }
+
+    public Boolean insertColor(int color) {
+        String query = "REPLACE INTO " + favoriteColorsTable + " (color) " + " VALUES (" + color + ")";
+        try {
+            db.execSQL(query);
+            return true;
+        } catch (Exception e) {
+            Log.i("info", "ERROR: " + e.toString());
+            return false;
+        }
+    }
+
+    public Boolean deleteColor(int color) {
+        String query = "DELETE FROM " + favoriteColorsTable  + " WHERE color=" + color;
+        try {
+            db.execSQL(query);
+            return true;
+        } catch (Exception e) {
+            Log.i("info", "ERROR: " + e.toString());
+            return false;
+        }
     }
 
     private class SQLHelper extends SQLiteOpenHelper {
         public SQLHelper(Context context) {
-            super(context, "color_sets", null, 3);
+            super(context, "color_sets", null, version);
         }
 
         public void onCreate(SQLiteDatabase db) {
             String query =
+                    "CREATE TABLE " + presetColorsTable + "(" +
+                            "color integer unique," +
+                            "brightness integer)";
+            db.execSQL(query);
+
+            query =
                     "CREATE TABLE " + favoriteColorsTable + "(" +
                             "color integer unique," +
                             "brightness integer)";
@@ -51,7 +90,7 @@ public class DataManager {
             int yellow2 = 0xFFac8820;
             int blue3 = 0xFF0982cf;
 
-            query = "INSERT INTO " + favoriteColorsTable + " (color, brightness) " +
+            query = "INSERT INTO " + presetColorsTable + " (color, brightness) " +
                     "values (" + red + "," + 100 +")," +
                     "(" + green  + ", " + 100 + ")," +
                     "(" + blue  + ", " + 100 + ")," +
@@ -72,6 +111,7 @@ public class DataManager {
         }
 
         public void onUpgrade(SQLiteDatabase db, int a, int b){
+            db.execSQL( "DROP TABLE IF EXISTS " + presetColorsTable );
             db.execSQL( "DROP TABLE IF EXISTS " + favoriteColorsTable );
             onCreate(db);
         }
