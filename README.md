@@ -1,8 +1,8 @@
 # Android-LED-Controller\
 
-##Final Project Implementation
-##CSCI 4211
-##Scott Clay and Devin Piner
+### Final Project Implementation
+### CSCI 4211
+### Scott Clay and Devin Piner
 
 
 Activities: 
@@ -28,5 +28,5 @@ used as "smart lights" for this project. The status is saved on an
 online remote mysql database (we have hosted ourselves). The database is
 accessed using a custom API we wrote with endpoints for retrieving and
 saving the full status, brightness only, and status only. The demo is
-hosted on the same server as the API, and is updated by checking the database
-every 10 seconds.
+hosted on the same server as the database, and is updated by checking for 
+changes every 10 seconds.
