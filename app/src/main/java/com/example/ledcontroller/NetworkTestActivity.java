@@ -25,20 +25,23 @@ public class NetworkTestActivity extends AppCompatActivity {
     private TextView apiView;
     private TextView errView;
 
-    private String wifi, api, err;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_network_test);
 
+        // get layout attributes
         wifiView = findViewById(R.id.wifiView);
         apiView = findViewById(R.id.apiView);
         errView = findViewById(R.id.errView);
 
+        // start api retrieval tasks
+        // active check
         new DataGrabber(0).execute();
+        // error check
         new DataGrabber(1).execute();
 
+        // get wifi SSID
         WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = manager.getConnectionInfo();
         wifiView.setText(wifiInfo.getSSID());
@@ -50,6 +53,9 @@ public class NetworkTestActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     * Async Task that pings api endpoints for response check and error messages
+     */
     public class DataGrabber extends AsyncTask<URL, Void, String> {
 
         private final String API_URL = "http://173.214.162.225:8080/jersey/rest/colorService";
@@ -69,6 +75,7 @@ public class NetworkTestActivity extends AppCompatActivity {
                     url = new URL(API_URL + "/err");
                     connection = (HttpURLConnection) url.openConnection();
                     int response = connection.getResponseCode();
+                    // return err messages
                     if (response == HttpURLConnection.HTTP_OK) {
                         StringBuilder builder = new StringBuilder();
                         try {
@@ -98,6 +105,7 @@ public class NetworkTestActivity extends AppCompatActivity {
                     url = new URL(API_URL + "/color");
                     connection = (HttpURLConnection) url.openConnection();
                     int response = connection.getResponseCode();
+                    // return connection report
                     if (response == HttpURLConnection.HTTP_OK) {
                         return "Active";
                     } else {
@@ -114,8 +122,7 @@ public class NetworkTestActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String s) {
-            //super.onPostExecute(s);
-
+            // set text views to reflect results
             if (errorFlag == 1) {
                 errView.setText(s);
             } else {

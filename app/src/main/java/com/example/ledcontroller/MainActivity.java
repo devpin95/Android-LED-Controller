@@ -49,18 +49,20 @@ public class MainActivity extends AppCompatActivity {
 
     // true state = ON state, false state = OFF state
     private boolean state = true;
+    private LColor currentColor;
+    private LColor offColor = new LColor((int)Long.parseLong("FF555555", 16));
+    private LColor defaultColor = new LColor(255);
+
     private Button toggle;
     private SeekBar brightnessBar;
     private TextView brightness_val;
     private TextView codes;
     private FloatingActionButton addFavoritesButton;
-    private LColor currentColor;
-    private LColor offColor = new LColor((int)Long.parseLong("FF555555", 16));
-    private LColor defaultColor = new LColor(255);
 
     private DataManager db;
 
     Vibrator vibe;
+
 
     @Override
     @TargetApi(16)
@@ -68,10 +70,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // initialize local database
         db = new DataManager(this);
 
+        // initialize device vibrator
         vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
+        // get layout attributes
         toggle = findViewById(R.id.toggle);
         brightnessBar = findViewById(R.id.brightnessBar);
         brightness_val = findViewById(R.id.brightnessTextView);
@@ -98,16 +103,13 @@ public class MainActivity extends AppCompatActivity {
         // set default starting color
         currentColor = defaultColor;
 
-        // Retrieve and set color and state from database
-        //new ColorGrabber().execute();
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        // Retrieve and set color and state from database
+        // Retrieve and set color and state from remote database
         new ColorGrabber().execute();
     }
 
@@ -135,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
-        //return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -159,13 +160,13 @@ public class MainActivity extends AppCompatActivity {
      *  Updates activity attributes to reflect the current color
      */
     public void updateActivityColor() {
-        //new ColorSender(currentColor.getHex(), currentColor.getBrightness(), state).execute();
 
         // change color text view to reflect current color
         codes.setText(currentColor.getHexString() + '\n' +
                 currentColor.getRgbString() + '\n' +
                 currentColor.getHsvString());
 
+        // set color scheme of activity
         setColorScheme(currentColor.getColor());
 
         // set seekbar to current color's brightness value
@@ -235,15 +236,21 @@ public class MainActivity extends AppCompatActivity {
      * @param view android.view.View required for onClick Event
      */
     public void toggleLED(View view) {
+        // toggle state
         state = !state;
+
         if ( state ) {
             toggle.setText(R.string.ON);
+
+            // set Activity to on state with max brightness
             if (currentColor.getBrightness() == 0) {
                 currentColor.setBrightness(100);
                 updateActivityColor();
                 new ColorSender(currentColor.getBrightness()).execute();
             }
+            // set Activity to on state with current nonzero brightness
             else {
+                // set Activity to on state
                 updateActivityColor();
             }
         } else {
@@ -254,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
         new ColorSender(state).execute();
 
         try {
+            //vibrate on button toggle
             vibe.vibrate(10);
         }
         catch (Exception e) {
@@ -261,6 +269,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Seekbar for brightness control
+     */
     SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
 
         @Override
@@ -296,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
-            // save result in database
+            // push result to remote database
             new ColorSender(currentColor.getBrightness()).execute();
         }
     };
@@ -337,6 +348,9 @@ public class MainActivity extends AppCompatActivity {
 
     //***************************** Network tasks *******************************
 
+    /**
+     * Async Task that retrieves xml color from remote database
+     */
     public class ColorGrabber extends AsyncTask<URL, Void, String> {
 
         private final String API_URL = "http://173.214.162.225:8080/jersey/rest/colorService/color";
@@ -347,9 +361,11 @@ public class MainActivity extends AppCompatActivity {
             HttpURLConnection connection = null;
 
             try {
+                // establish connection to API
                 URL url = new URL(API_URL);
                 connection = (HttpURLConnection) url.openConnection();
                 int response = connection.getResponseCode();
+                // if successful, obtain response as a string
                 if (response == HttpURLConnection.HTTP_OK) {
                     StringBuilder builder = new StringBuilder();
                     try {
