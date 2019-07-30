@@ -23,6 +23,9 @@ import androidx.fragment.app.Fragment;
 
 import org.w3c.dom.Text;
 
+/**
+ * Fragment for deletion confirmation of favorite color
+ */
 public class DeleteFavoriteColorDialogFragment extends DialogFragment {
     public static DeleteFavoriteColorDialogFragment newInstance(int color) {
         Log.i("info", Integer.toString(color));

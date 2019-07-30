@@ -13,6 +13,7 @@ import android.util.Log;
 import com.google.android.material.tabs.TabItem;
 import com.google.android.material.tabs.TabLayout;
 
+
 public class FavoriteColorListActivity extends AppCompatActivity {
 
     private TabLayout tabLayout;

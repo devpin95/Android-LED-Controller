@@ -117,7 +117,6 @@ public class LColor {
 
     public String getHsvString() { return hsvString; }
 
-
     public int getBrightness() {
         return (int)(hsvColor[2] * 100);
     }
